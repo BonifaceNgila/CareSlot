@@ -1,0 +1,27 @@
+# Render Blueprint: one Docker web service + one managed PostgreSQL database.
+# Deploys are triggered by GitHub Actions (deploy hook) only after tests pass, so Render's own
+# auto-deploy is switched off.
+services:
+  - type: web
+    name: careslot-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /health
+    autoDeployTrigger: "off"
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: careslot-db
+          property: connectionString
+
+databases:
+  - name: careslot-db
+    plan: free
+    region: frankfurt
+    databaseName: careslot
+    user: careslot

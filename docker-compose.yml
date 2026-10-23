@@ -1,0 +1,23 @@
+# Local MySQL for development and tests:  docker compose up -d
+# Host port 3307 avoids clashing with an existing MySQL/MariaDB (e.g. XAMPP) on 3306.
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: careslot
+      MYSQL_USER: careslot
+      MYSQL_PASSWORD: careslot
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql-init.sql:/docker-entrypoint-initdb.d/01-grants.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  mysql-data:
