@@ -7,3 +7,8 @@ __pycache__/
 *.db
 staticfiles/
 .env
+deploy/oci/.deploy.lock
+deploy/oci/backups/
+careslot-source.tar.gz
+deploy/oci/.runtime/
+deploy/oci/known_hosts

@@ -21,4 +21,4 @@ class HealthCheckMiddleware:
                 cursor.execute("SELECT 1")
         except Exception:
             return JsonResponse({"status": "error", "database": "unreachable"}, status=503)
-        return JsonResponse({"status": "ok", "commit": os.environ.get("RENDER_GIT_COMMIT", "local")})
+        return JsonResponse({"status": "ok", "commit": os.environ.get("GIT_COMMIT", "local")})

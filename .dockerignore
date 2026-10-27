@@ -10,3 +10,12 @@ __pycache__
 staticfiles
 app
 tests
+.env
+.env.*
+**/.env
+**/.env.*
+deploy/oci/backups
+deploy/oci/.deploy.lock
+*.tar.gz
+deploy/oci/.runtime
+deploy/oci/known_hosts

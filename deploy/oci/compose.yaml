@@ -1,0 +1,68 @@
+name: careslot-oci
+
+services:
+  db:
+    image: postgres:16-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: careslot
+      POSTGRES_USER: careslot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run init_env.py first}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U careslot -d careslot']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  api:
+    image: careslot-oci:${RELEASE_TAG:?Use deploy.sh}
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://careslot:${POSTGRES_PASSWORD:?}@db:5432/careslot
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?}
+      DJANGO_DEBUG: '0'
+      DJANGO_ALLOWED_HOSTS: ${APP_DOMAIN:?}
+      CLINIC_TIME_ZONE: Africa/Nairobi
+      GIT_COMMIT: ${GIT_COMMIT:-local}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=5)"]
+      interval: 10s
+      timeout: 6s
+      start_period: 20s
+      retries: 12
+    logging: *logging
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    logging: *logging
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
