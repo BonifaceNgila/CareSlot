@@ -19,7 +19,7 @@ CareSlot is a booking API for a clinic with 5 doctors. Patients can see free 30-
 | Section | Status |
 | --- | --- |
 | 1. System design | Done |
-| 2. API | Done, including both bonus features. 43 tests pass. |
+| 2. API | Done, including both bonus features. 44 tests pass. |
 | 3. Deployment | Live on OCI over HTTPS |
 | 3. CI/CD | PR tests and auto-deploy to OCI are written; not yet run (GitHub billing lock) |
 | 4. AI reflection | Done |
@@ -86,7 +86,7 @@ Errors use one format, with 400 for bad input, 404 for not found and 409 for con
 
 **Try it:** the live API has 15 fictional patients and 15 appointments on 28–29 October 2026. Appointment 1 is booked, appointment 2 was rescheduled, and appointment 3 was cancelled. For new bookings, pick a future date and use a slot returned by the availability endpoint.
 
-**Tests:** 43 tests pass on PostgreSQL 16. They cover booking rules, cancelling, rescheduling, time zones, availability, errors, the 8-way race and the demo data command. Full output: `submission/evidence/postgresql-tests.txt`.
+**Tests:** 44 tests pass. They cover booking rules, cancelling, rescheduling, time zones, availability, errors, the 8-way race and the demo data command. Full output: `submission/evidence/postgresql-tests.txt`.
 
 ---PAGE---
 

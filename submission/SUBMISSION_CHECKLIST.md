@@ -3,7 +3,7 @@
 ## Done
 
 - [x] Section 1: design, assumptions and trade-offs in the README
-- [x] Section 2: all required endpoints, both bonus features, 43 tests passing on PostgreSQL
+- [x] Section 2: all required endpoints, both bonus features, 44 tests passing
 - [x] Section 3: live on OCI over HTTPS, with fictional demo data
 - [x] Section 4: reflection written
 
@@ -11,7 +11,7 @@
 
 - [ ] Read REFLECTION.md and make sure it is in your own words
 - [x] Change the deploy step in `.github/workflows/ci.yml` from Render to OCI
-- [ ] Add the deploy key to the server and the secrets/variables to GitHub
+- [x] Add the deploy key to the server and the secrets/variables to GitHub
 - [ ] Fix the GitHub Actions billing lock (github.com/settings/billing)
 - [ ] Re-run the checks on PR #1, merge it, and confirm the deploy job turns green
 - [ ] Push all changes to GitHub and check the repo is public

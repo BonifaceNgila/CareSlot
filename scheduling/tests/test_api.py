@@ -178,6 +178,13 @@ class RescheduleTests(ApiTestCase):
         self.cancel(appointment["id"])
         self.assertError(self.reschedule(appointment["id"], at(7, 11)), 409, "appointment_cancelled")
 
+    def test_cannot_reschedule_with_a_retired_doctor(self):
+        appointment = self.book(at(7, 9)).json()
+        self.doctor.is_active = False
+        self.doctor.save()
+        self.assertError(self.reschedule(appointment["id"], at(7, 11)), 409, "doctor_unavailable")
+        self.assertEqual(self.cancel(appointment["id"]).status_code, 200)
+
     def test_rescheduling_to_the_same_slot_is_rejected(self):
         appointment = self.book(at(7, 9)).json()
         self.assertError(self.reschedule(appointment["id"], at(7, 9)), 400, "same_slot")

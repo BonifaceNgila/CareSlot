@@ -10,12 +10,12 @@ Built with Django REST Framework and PostgreSQL. Hosted on Oracle Cloud (OCI).
 | Health check | https://careslot.84-13-134-168.sslip.io/health |
 | Repository | https://github.com/BonifaceNgila/CareSlot |
 | AI reflection | [REFLECTION.md](REFLECTION.md) |
-| Full report | [submission/SUBMISSION_REPORT.md](submission/SUBMISSION_REPORT.md) |
+| Full report (Word) | [submission/CareSlot_Assessment_Report.docx](submission/CareSlot_Assessment_Report.docx) |
 
 **Status**
 
-- Done: design, all required endpoints, both bonus features, 43 tests, live HTTPS deployment with demo data.
-- Written but not yet run: automatic deployment to OCI when a pull request is merged (see section 4).
+- Done: design, all required endpoints, both bonus features, 44 tests, live HTTPS deployment with demo data.
+- Written and configured, waiting on GitHub: the CI/CD pipeline. A billing lock on the GitHub account stops Actions from starting. **This is being fixed** (see section 4).
 
 ---
 
@@ -85,7 +85,7 @@ Errors always look like this:
 
 - **400:** bad input, or a slot that can never work (past, outside hours, off the 30-minute grid, under 1 hour away)
 - **404:** doctor, patient or appointment not found
-- **409:** conflict with current data (slot taken, already cancelled, already started)
+- **409:** conflict with current data (slot taken, already cancelled, already started, or rescheduling with a doctor who has since retired)
 
 ---
 
@@ -124,7 +124,7 @@ python manage.py test scheduling
 python -m ruff check .
 ```
 
-On SQLite, the 8-way race test is skipped. To run it, set `DATABASE_URL` to a PostgreSQL database.
+There are 44 tests. On SQLite, the 8-way race test is skipped. To run it, set `DATABASE_URL` to a PostgreSQL database.
 
 **Settings** (environment variables): `DATABASE_URL` (default SQLite), `DJANGO_DEBUG`, `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `CLINIC_TIME_ZONE` (default Africa/Nairobi), `BOOKING_MIN_NOTICE_MINUTES` (default 60).
 
@@ -154,7 +154,12 @@ The server's SSH host key is pinned, so the job refuses to connect if the server
 
 **GitHub settings it needs:** secrets `OCI_SSH_KEY` (a deploy-only key) and `OCI_KNOWN_HOSTS`, and variables `OCI_HOST`, `OCI_USER` and `APP_URL`.
 
-**Status:** the pipeline is written. GitHub Actions is currently blocked by a billing issue on the account, so it has not run yet. The live version was deployed by hand with the same `deploy.sh`.
+**Status: blocked by a GitHub billing lock, being fixed.**
+
+- The GitHub account is locked from purchases because of a billing issue. While it's locked, GitHub won't start any Actions job, even on this public repo, where Actions is normally free.
+- Every run stops within seconds with *"The job was not started because your account is locked due to a billing issue"* ([example run](https://github.com/BonifaceNgila/CareSlot/actions/runs/40564450547)).
+- I am resolving this with GitHub. Once the lock is lifted, the pipeline runs with no code changes.
+- Meanwhile, releases are deployed by hand with the same `deploy.sh`, passing the commit ID, so `/health` shows exactly which commit is live.
 
 `cloudbuild.yaml` is an alternative setup for Google Cloud Run. It is not used by the live server.
 

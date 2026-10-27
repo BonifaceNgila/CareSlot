@@ -14,3 +14,6 @@ deploy/oci/.runtime/
 deploy/oci/known_hosts
 tmp/
 output/
+
+# Word/Office temporary lock files
+~$*
