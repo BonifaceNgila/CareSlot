@@ -10,12 +10,16 @@ test -f .env || { echo 'Run python3 deploy/oci/init_env.py api.example.com first
 exec 9>.deploy.lock
 flock -n 9 || { echo 'Another deployment is running.' >&2; exit 1; }
 export RELEASE_TAG="$(date -u +%Y%m%d%H%M%S)-$$"
-export GIT_COMMIT=source-bundle
-if git -C ../.. rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+# The CI pipeline syncs files without .git and passes the merged commit in GIT_COMMIT.
+if test -n "${GIT_COMMIT:-}"; then
+    export GIT_COMMIT
+elif git -C ../.. rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     export GIT_COMMIT="$(git -C ../.. rev-parse HEAD)"
     if test -n "$(git -C ../.. status --porcelain --untracked-files=normal)"; then
         export GIT_COMMIT="${GIT_COMMIT}-dirty"
     fi
+else
+    export GIT_COMMIT=source-bundle
 fi
 compose=(docker compose --env-file .env -f compose.yaml)
 "${compose[@]}" config --quiet

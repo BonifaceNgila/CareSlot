@@ -1,2 +1,3 @@
 deploy/oci/*.sh text eol=lf
 deploy/oci/Caddyfile text eol=lf
+*.pdf binary

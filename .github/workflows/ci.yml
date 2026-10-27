@@ -55,7 +55,7 @@ jobs:
       - run: docker build -t careslot:${{ github.sha }} .
 
   deploy:
-    name: Deploy to Render
+    name: Deploy to OCI
     needs: [test, docker]
     # Only after a merge (push) to main, never for pull requests.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -63,22 +63,43 @@ jobs:
     environment:
       name: production
       url: ${{ vars.APP_URL }}
+    env:
+      TARGET: ${{ vars.OCI_USER }}@${{ vars.OCI_HOST }}
     steps:
-      - name: Trigger Render deploy
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
         env:
-          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          SSH_KEY: ${{ secrets.OCI_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.OCI_KNOWN_HOSTS }}
         run: |
-          test -n "$DEPLOY_HOOK" || { echo "::error::Set the RENDER_DEPLOY_HOOK secret"; exit 1; }
-          curl --fail --silent --show-error -X POST "$DEPLOY_HOOK" > /dev/null
-      - name: Wait until this commit is live
+          test -n "$SSH_KEY" && test -n "$KNOWN_HOSTS" || { echo "::error::Set OCI_SSH_KEY and OCI_KNOWN_HOSTS secrets"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy && chmod 600 ~/.ssh/id_deploy
+          # Pinned host key: the job refuses to connect if the server's identity changes.
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host *\n  IdentityFile ~/.ssh/id_deploy\n  StrictHostKeyChecking yes\n' > ~/.ssh/config
+
+      # Mirror the merged code to the server. Server-only files (secrets, backups, lock) are excluded,
+      # so --delete never touches them; files removed from the repo are removed on the server.
+      - name: Upload code
+        run: |
+          rsync -az --delete \
+            --exclude=.git/ \
+            --exclude=deploy/oci/.env \
+            --exclude=deploy/oci/backups/ \
+            --exclude=deploy/oci/.deploy.lock \
+            ./ "$TARGET:CareSlot/"
+
+      # deploy.sh builds the image, migrates once, restarts the containers and checks that
+      # https://<domain>/health reports this commit.
+      - name: Deploy
+        run: ssh "$TARGET" "cd CareSlot && sudo GIT_COMMIT=$GITHUB_SHA bash deploy/oci/deploy.sh"
+
+      - name: Check the live site
         env:
           APP_URL: ${{ vars.APP_URL }}
         run: |
-          if [ -z "$APP_URL" ]; then echo "APP_URL variable not set; skipping live check"; exit 0; fi
-          for attempt in $(seq 1 60); do
-            live=$(curl --silent --max-time 30 "$APP_URL/health" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("commit",""))' 2>/dev/null || true)
-            if [ "$live" = "$GITHUB_SHA" ]; then echo "Deployed $GITHUB_SHA"; exit 0; fi
-            echo "Attempt $attempt: live commit is '${live:-unreachable}', waiting..."
-            sleep 15
-          done
-          echo "::error::$GITHUB_SHA was not live after 15 minutes"; exit 1
+          live=$(curl --silent --fail --max-time 30 "$APP_URL/health" | python3 -c 'import json,sys; print(json.load(sys.stdin)["commit"])')
+          test "$live" = "$GITHUB_SHA" || { echo "::error::Live commit is '$live', expected $GITHUB_SHA"; exit 1; }
+          echo "$GITHUB_SHA is live at $APP_URL"
