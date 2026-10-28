@@ -12,7 +12,7 @@ from scheduling.models import Appointment, Patient
 from .helpers import SchedulingFixtures, at
 
 
-@unittest.skipIf(connection.vendor == "sqlite", "needs real concurrent transactions (MySQL)")
+@unittest.skipIf(connection.vendor == "sqlite", "needs real concurrent transactions (PostgreSQL)")
 class ConcurrentBookingTests(SchedulingFixtures, TransactionTestCase):
     def test_only_one_of_many_simultaneous_bookings_wins(self):
         patients = [Patient.objects.create(name=f"Racer {i}") for i in range(8)]

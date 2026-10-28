@@ -1,0 +1,154 @@
+{
+  "demo_examples": [
+    {
+      "scenario": "booked",
+      "patient_id": 1,
+      "patient_name": "Demo Patient 01",
+      "doctor_id": 1,
+      "doctor_name": "Dr. Amina Odhiambo",
+      "appointment_id": 1,
+      "status": "booked",
+      "start_at": "2026-10-28T08:00:00+03:00"
+    },
+    {
+      "scenario": "rescheduled",
+      "patient_id": 2,
+      "patient_name": "Demo Patient 02",
+      "doctor_id": 1,
+      "doctor_name": "Dr. Amina Odhiambo",
+      "appointment_id": 2,
+      "status": "booked",
+      "start_at": "2026-10-28T09:00:00+03:00"
+    },
+    {
+      "scenario": "cancelled",
+      "patient_id": 3,
+      "patient_name": "Demo Patient 03",
+      "doctor_id": 1,
+      "doctor_name": "Dr. Amina Odhiambo",
+      "appointment_id": 3,
+      "status": "cancelled",
+      "start_at": "2026-10-28T08:30:00+03:00"
+    },
+    {
+      "scenario": "booked",
+      "patient_id": 4,
+      "patient_name": "Demo Patient 04",
+      "doctor_id": 2,
+      "doctor_name": "Dr. Brian Mwangi",
+      "appointment_id": 4,
+      "status": "booked",
+      "start_at": "2026-10-28T09:00:00+03:00"
+    },
+    {
+      "scenario": "rescheduled",
+      "patient_id": 5,
+      "patient_name": "Demo Patient 05",
+      "doctor_id": 2,
+      "doctor_name": "Dr. Brian Mwangi",
+      "appointment_id": 5,
+      "status": "booked",
+      "start_at": "2026-10-28T10:00:00+03:00"
+    },
+    {
+      "scenario": "cancelled",
+      "patient_id": 6,
+      "patient_name": "Demo Patient 06",
+      "doctor_id": 2,
+      "doctor_name": "Dr. Brian Mwangi",
+      "appointment_id": 6,
+      "status": "cancelled",
+      "start_at": "2026-10-28T09:30:00+03:00"
+    },
+    {
+      "scenario": "booked",
+      "patient_id": 7,
+      "patient_name": "Demo Patient 07",
+      "doctor_id": 3,
+      "doctor_name": "Dr. Catherine Wanjiru",
+      "appointment_id": 7,
+      "status": "booked",
+      "start_at": "2026-10-28T10:00:00+03:00"
+    },
+    {
+      "scenario": "rescheduled",
+      "patient_id": 8,
+      "patient_name": "Demo Patient 08",
+      "doctor_id": 3,
+      "doctor_name": "Dr. Catherine Wanjiru",
+      "appointment_id": 8,
+      "status": "booked",
+      "start_at": "2026-10-28T11:00:00+03:00"
+    },
+    {
+      "scenario": "cancelled",
+      "patient_id": 9,
+      "patient_name": "Demo Patient 09",
+      "doctor_id": 3,
+      "doctor_name": "Dr. Catherine Wanjiru",
+      "appointment_id": 9,
+      "status": "cancelled",
+      "start_at": "2026-10-28T10:30:00+03:00"
+    },
+    {
+      "scenario": "booked",
+      "patient_id": 10,
+      "patient_name": "Demo Patient 10",
+      "doctor_id": 4,
+      "doctor_name": "Dr. David Kiprop",
+      "appointment_id": 10,
+      "status": "booked",
+      "start_at": "2026-10-29T08:00:00+03:00"
+    },
+    {
+      "scenario": "rescheduled",
+      "patient_id": 11,
+      "patient_name": "Demo Patient 11",
+      "doctor_id": 4,
+      "doctor_name": "Dr. David Kiprop",
+      "appointment_id": 11,
+      "status": "booked",
+      "start_at": "2026-10-29T09:00:00+03:00"
+    },
+    {
+      "scenario": "cancelled",
+      "patient_id": 12,
+      "patient_name": "Demo Patient 12",
+      "doctor_id": 4,
+      "doctor_name": "Dr. David Kiprop",
+      "appointment_id": 12,
+      "status": "cancelled",
+      "start_at": "2026-10-29T08:30:00+03:00"
+    },
+    {
+      "scenario": "booked",
+      "patient_id": 13,
+      "patient_name": "Demo Patient 13",
+      "doctor_id": 5,
+      "doctor_name": "Dr. Esther Achieng",
+      "appointment_id": 13,
+      "status": "booked",
+      "start_at": "2026-10-28T09:00:00+03:00"
+    },
+    {
+      "scenario": "rescheduled",
+      "patient_id": 14,
+      "patient_name": "Demo Patient 14",
+      "doctor_id": 5,
+      "doctor_name": "Dr. Esther Achieng",
+      "appointment_id": 14,
+      "status": "booked",
+      "start_at": "2026-10-28T10:00:00+03:00"
+    },
+    {
+      "scenario": "cancelled",
+      "patient_id": 15,
+      "patient_name": "Demo Patient 15",
+      "doctor_id": 5,
+      "doctor_name": "Dr. Esther Achieng",
+      "appointment_id": 15,
+      "status": "cancelled",
+      "start_at": "2026-10-28T09:30:00+03:00"
+    }
+  ]
+}

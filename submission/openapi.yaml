@@ -1,0 +1,404 @@
+openapi: 3.0.3
+info:
+  title: CareSlot API
+  version: 1.0.0
+  description: 'Clinic appointment booking: doctor availability, booking, cancellation
+    and rescheduling.'
+paths:
+  /appointments:
+    post:
+      operationId: appointments_create
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookAppointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BookAppointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BookAppointment'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /appointments/{appointment_id}:
+    get:
+      operationId: appointments_retrieve
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - appointments
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /appointments/{appointment_id}/cancel:
+    patch:
+      operationId: appointments_cancel_partial_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCancelAppointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCancelAppointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCancelAppointment'
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /appointments/{appointment_id}/reschedule:
+    patch:
+      operationId: appointments_reschedule_partial_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - appointments
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRescheduleAppointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRescheduleAppointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRescheduleAppointment'
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /doctors:
+    get:
+      operationId: doctors_list
+      tags:
+      - doctors
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Doctor'
+          description: ''
+  /doctors/{doctor_id}/availability:
+    get:
+      operationId: doctors_availability_retrieve
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+        description: Day to list free slots for, YYYY-MM-DD.
+        required: true
+      - in: path
+        name: doctor_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - doctors
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Availability'
+          description: ''
+  /patients:
+    post:
+      operationId: patients_create
+      tags:
+      - patients
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Patient'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Patient'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Patient'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Patient'
+          description: ''
+  /patients/{patient_id}/appointments:
+    get:
+      operationId: patients_appointments_list
+      description: Upcoming (future, not cancelled) appointments for a patient, soonest
+        first.
+      parameters:
+      - in: path
+        name: patient_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - patients
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+          description: ''
+components:
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        doctor_id:
+          type: integer
+          readOnly: true
+        doctor_name:
+          type: string
+          readOnly: true
+        patient_id:
+          type: integer
+          readOnly: true
+        start_at:
+          type: string
+          format: date-time
+          readOnly: true
+        end_at:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        cancellation_reason:
+          type: string
+          readOnly: true
+        cancelled_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cancellation_reason
+      - cancelled_at
+      - created_at
+      - doctor_id
+      - doctor_name
+      - end_at
+      - id
+      - patient_id
+      - start_at
+      - status
+      - updated_at
+    Availability:
+      type: object
+      properties:
+        doctor_id:
+          type: integer
+        doctor_name:
+          type: string
+        date:
+          type: string
+          format: date
+        timezone:
+          type: string
+        slot_minutes:
+          type: integer
+        slots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slot'
+      required:
+      - date
+      - doctor_id
+      - doctor_name
+      - slot_minutes
+      - slots
+      - timezone
+    BookAppointment:
+      type: object
+      properties:
+        doctor_id:
+          type: integer
+          minimum: 1
+        patient_id:
+          type: integer
+          minimum: 1
+        start_at:
+          type: string
+          format: date-time
+          description: Slot start, ISO 8601. Without an offset it is read as clinic
+            local time (Africa/Nairobi).
+      required:
+      - doctor_id
+      - patient_id
+      - start_at
+    Doctor:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        specialty:
+          type: string
+          maxLength: 120
+        working_hours:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkingHours'
+          readOnly: true
+      required:
+      - id
+      - name
+      - working_hours
+    PatchedCancelAppointment:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+    PatchedRescheduleAppointment:
+      type: object
+      properties:
+        start_at:
+          type: string
+          format: date-time
+          description: New slot start, ISO 8601.
+    Patient:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 32
+        email:
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+    Slot:
+      type: object
+      properties:
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+      required:
+      - end_at
+      - start_at
+    StatusEnum:
+      enum:
+      - booked
+      - cancelled
+      type: string
+      description: |-
+        * `booked` - Booked
+        * `cancelled` - Cancelled
+    WorkingHours:
+      type: object
+      properties:
+        weekday:
+          type: string
+        start_time:
+          type: string
+          format: time
+        end_time:
+          type: string
+          format: time
+      required:
+      - end_time
+      - start_time
+      - weekday

@@ -1,0 +1,159 @@
+Found 43 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: drf_spectacular, messages, rest_framework, staticfiles
+  Apply all migrations: admin, auth, contenttypes, scheduling, sessions
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+Creating test database for alias 'default' ('test_careslot')...
+ 
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying scheduling.0001_initial... OK
+  Applying scheduling.0002_seed_doctors... OK
+  Applying sessions.0001_initial... OK
+System check identified no issues (0 silenced).
+test_booked_slots_are_hidden (scheduling.tests.test_api.AvailabilityTests.test_booked_slots_are_hidden) ... ok
+test_date_is_required_and_validated (scheduling.tests.test_api.AvailabilityTests.test_date_is_required_and_validated) 
+... Bad Request: /doctors/7/availability
+Bad Request: /doctors/7/availability
+ok
+test_day_off_and_past_day_are_empty (scheduling.tests.test_api.AvailabilityTests.test_day_off_and_past_day_are_empty) 
+... ok
+test_existing_booking_blocks_overlapping_slots_after_hours_change 
+(scheduling.tests.test_api.AvailabilityTests.test_existing_booking_blocks_overlapping_slots_after_hours_change)
+If a doctor's shift moves to a different grid, older bookings must still block overlaps. ... Conflict: /appointments
+ok
+test_lists_every_slot_in_the_shift (scheduling.tests.test_api.AvailabilityTests.test_lists_every_slot_in_the_shift) 
+... ok
+test_response_shape (scheduling.tests.test_api.AvailabilityTests.test_response_shape) ... ok
+test_slots_inside_the_notice_window_are_hidden 
+(scheduling.tests.test_api.AvailabilityTests.test_slots_inside_the_notice_window_are_hidden) ... ok
+test_unknown_doctor (scheduling.tests.test_api.AvailabilityTests.test_unknown_doctor) ... Not Found: 
+/doctors/999/availability
+ok
+test_books_a_free_slot (scheduling.tests.test_api.BookingTests.test_books_a_free_slot) ... ok
+test_database_constraint_catches_a_race_the_precheck_missed 
+(scheduling.tests.test_api.BookingTests.test_database_constraint_catches_a_race_the_precheck_missed)
+Simulate two requests passing the availability check before either inserts. ... Conflict: /appointments
+ok
+test_last_slot_of_the_day_is_bookable (scheduling.tests.test_api.BookingTests.test_last_slot_of_the_day_is_bookable) 
+... ok
+test_malformed_payload_lists_field_errors 
+(scheduling.tests.test_api.BookingTests.test_malformed_payload_lists_field_errors) ... Bad Request: /appointments
+ok
+test_naive_datetime_is_read_as_clinic_time 
+(scheduling.tests.test_api.BookingTests.test_naive_datetime_is_read_as_clinic_time) ... ok
+test_other_doctors_slot_at_same_time_is_independent 
+(scheduling.tests.test_api.BookingTests.test_other_doctors_slot_at_same_time_is_independent) ... ok
+test_patient_cannot_be_in_two_places_at_once 
+(scheduling.tests.test_api.BookingTests.test_patient_cannot_be_in_two_places_at_once) ... Conflict: /appointments
+ok
+test_rejects_a_taken_slot (scheduling.tests.test_api.BookingTests.test_rejects_a_taken_slot) ... Conflict: 
+/appointments
+ok
+test_rejects_past_slots (scheduling.tests.test_api.BookingTests.test_rejects_past_slots) ... Bad Request: /appointments
+ok
+test_rejects_slots_less_than_an_hour_away 
+(scheduling.tests.test_api.BookingTests.test_rejects_slots_less_than_an_hour_away) ... Bad Request: /appointments
+ok
+test_rejects_slots_outside_working_hours 
+(scheduling.tests.test_api.BookingTests.test_rejects_slots_outside_working_hours) ... Bad Request: /appointments
+Bad Request: /appointments
+Bad Request: /appointments
+Bad Request: /appointments
+ok
+test_rejects_times_off_the_slot_grid (scheduling.tests.test_api.BookingTests.test_rejects_times_off_the_slot_grid) ... 
+Bad Request: /appointments
+Bad Request: /appointments
+ok
+test_same_instant_in_another_offset_is_the_same_slot 
+(scheduling.tests.test_api.BookingTests.test_same_instant_in_another_offset_is_the_same_slot) ... Conflict: 
+/appointments
+ok
+test_unknown_doctor_or_patient (scheduling.tests.test_api.BookingTests.test_unknown_doctor_or_patient) ... Not Found: 
+/appointments
+Not Found: /appointments
+ok
+test_cancel_records_reason_and_frees_the_slot 
+(scheduling.tests.test_api.CancelTests.test_cancel_records_reason_and_frees_the_slot) ... ok
+test_cancelling_twice_is_a_conflict (scheduling.tests.test_api.CancelTests.test_cancelling_twice_is_a_conflict) ... 
+Conflict: /appointments/16/cancel
+ok
+test_cannot_cancel_an_appointment_that_already_started 
+(scheduling.tests.test_api.CancelTests.test_cannot_cancel_an_appointment_that_already_started) ... Conflict: 
+/appointments/17/cancel
+ok
+test_reason_is_required (scheduling.tests.test_api.CancelTests.test_reason_is_required) ... Bad Request: 
+/appointments/18/cancel
+Bad Request: /appointments/18/cancel
+Bad Request: /appointments/18/cancel
+ok
+test_unknown_appointment (scheduling.tests.test_api.CancelTests.test_unknown_appointment) ... Not Found: 
+/appointments/999/cancel
+ok
+test_create_patient (scheduling.tests.test_api.MiscTests.test_create_patient) ... Bad Request: /patients
+ok
+test_health (scheduling.tests.test_api.MiscTests.test_health) ... ok
+test_seeded_doctors_are_listed_with_hours 
+(scheduling.tests.test_api.MiscTests.test_seeded_doctors_are_listed_with_hours) ... ok
+test_unknown_route_returns_json_404 (scheduling.tests.test_api.MiscTests.test_unknown_route_returns_json_404) ... Not 
+Found: /nope
+ok
+test_appointments_that_have_started_are_not_upcoming 
+(scheduling.tests.test_api.PatientAppointmentsTests.test_appointments_that_have_started_are_not_upcoming) ... ok
+test_unknown_patient (scheduling.tests.test_api.PatientAppointmentsTests.test_unknown_patient) ... Not Found: 
+/patients/999/appointments
+ok
+test_upcoming_appointments_sorted_and_filtered 
+(scheduling.tests.test_api.PatientAppointmentsTests.test_upcoming_appointments_sorted_and_filtered) ... ok
+test_can_move_to_another_day (scheduling.tests.test_api.RescheduleTests.test_can_move_to_another_day) ... ok
+test_cannot_reschedule_a_cancelled_appointment 
+(scheduling.tests.test_api.RescheduleTests.test_cannot_reschedule_a_cancelled_appointment) ... Conflict: 
+/appointments/25/reschedule
+ok
+test_moves_the_appointment_and_frees_the_original_slot 
+(scheduling.tests.test_api.RescheduleTests.test_moves_the_appointment_and_frees_the_original_slot) ... ok
+test_new_slot_gets_full_booking_validation 
+(scheduling.tests.test_api.RescheduleTests.test_new_slot_gets_full_booking_validation) ... Bad Request: 
+/appointments/27/reschedule
+Bad Request: /appointments/27/reschedule
+Bad Request: /appointments/27/reschedule
+Bad Request: /appointments/27/reschedule
+ok
+test_rescheduling_to_the_same_slot_is_rejected 
+(scheduling.tests.test_api.RescheduleTests.test_rescheduling_to_the_same_slot_is_rejected) ... Bad Request: 
+/appointments/28/reschedule
+ok
+test_taken_target_leaves_original_booking_intact 
+(scheduling.tests.test_api.RescheduleTests.test_taken_target_leaves_original_booking_intact) ... Conflict: 
+/appointments/29/reschedule
+ok
+test_missing_working_hours_rolls_back_patients 
+(scheduling.tests.test_seed_demo.DemoSeedTests.test_missing_working_hours_rolls_back_patients) ... ok
+test_scenarios_are_valid_and_repeat_does_not_duplicate 
+(scheduling.tests.test_seed_demo.DemoSeedTests.test_scenarios_are_valid_and_repeat_does_not_duplicate) ... ok
+test_only_one_of_many_simultaneous_bookings_wins 
+(scheduling.tests.test_concurrency.ConcurrentBookingTests.test_only_one_of_many_simultaneous_bookings_wins) ... ok
+
+----------------------------------------------------------------------
+Ran 43 tests in 1.839s
+
+OK
+Destroying test database for alias 'default' ('test_careslot')...

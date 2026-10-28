@@ -192,6 +192,12 @@ def reschedule_appointment(appointment_id, *, start_at) -> Appointment:
         with transaction.atomic():
             appointment = get_appointment(appointment_id, for_update=True)
             _ensure_modifiable(appointment, "reschedule")
+            # Booking a retired doctor is a 404 in get_doctor; moving an old appointment onto their
+            # schedule must be refused too. The appointment can still be cancelled.
+            if not appointment.doctor.is_active:
+                raise ConflictError(
+                    f"{appointment.doctor.name} is no longer taking appointments.", code="doctor_unavailable"
+                )
             slot = validate_slot(appointment.doctor, start_at)
             if slot.start == appointment.start_at:
                 raise SlotValidationError("The appointment is already booked for this slot.", code="same_slot")

@@ -17,13 +17,16 @@ def env_list(name, default=""):
 
 
 DEBUG = env_bool("DJANGO_DEBUG")
-# The fallback key is only for local development and tests; render.yaml generates a real one.
+# The fallback key is only for local development and tests; production reads it from Secret Manager.
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-local-development-key")
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
-if render_host := os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
-    ALLOWED_HOSTS.append(render_host)
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host not in {"localhost", "127.0.0.1"}]
+# Cloud Run sets K_SERVICE. Its URL (https://<service>-<hash>.<region>.run.app) isn't known until the
+# first deploy, so accept the run.app domain rather than needing a second deploy to set the host.
+if os.environ.get("K_SERVICE"):
+    ALLOWED_HOSTS.append(".run.app")
+    CSRF_TRUSTED_ORIGINS.append("https://*.run.app")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -68,24 +71,14 @@ TEMPLATES = [
     },
 ]
 
-# MySQL 8 everywhere. The default matches docker-compose.yml (host port 3307, so it doesn't clash
-# with an existing local MySQL/MariaDB on 3306). Production sets DATABASE_URL.
+# SQLite locally so there's nothing to install; PostgreSQL (Neon) in CI and production via DATABASE_URL.
 DATABASES = {
     "default": dj_database_url.config(
-        default="mysql://careslot:careslot@127.0.0.1:3307/careslot",
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
         conn_max_age=60,
         conn_health_checks=True,
     )
 }
-if DATABASES["default"]["ENGINE"] == "django.db.backends.mysql":
-    _options = DATABASES["default"].setdefault("OPTIONS", {})
-    # Hosted MySQL URLs use "?ssl-mode=REQUIRED"; the mysqlclient driver expects "ssl_mode".
-    if "ssl-mode" in _options:
-        _options["ssl_mode"] = _options.pop("ssl-mode")
-    _options.setdefault("charset", "utf8mb4")
-    # Strict mode: reject over-long or invalid values instead of silently truncating them.
-    _options.setdefault("init_command", "SET sql_mode='STRICT_TRANS_TABLES'")
-    DATABASES["default"]["TEST"] = {"CHARSET": "utf8mb4", "COLLATION": "utf8mb4_unicode_ci"}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

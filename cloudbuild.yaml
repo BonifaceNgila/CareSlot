@@ -1,0 +1,94 @@
+# CI/CD on Google Cloud Build. One file, two triggers (see README section 4):
+#   careslot-pr      pull request into main   -> lint, migration check, tests on PostgreSQL, image build
+#   careslot-deploy  push to main (a merge)   -> the same, then push image, migrate, deploy, verify live
+# The deploy trigger sets _DEPLOY=true; every deploy step exits early without it, so a PR can never deploy.
+
+substitutions:
+  _DEPLOY: "false"
+  _REGION: europe-west1
+  _SERVICE: careslot-api
+  _REPO: careslot
+
+options:
+  automapSubstitutions: true # expose the values above (and COMMIT_SHA, PROJECT_ID) as env vars to scripts
+  logging: CLOUD_LOGGING_ONLY
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/careslot-database-url/versions/latest
+      env: PROD_DATABASE_URL
+
+steps:
+  # Throwaway PostgreSQL 16 for the tests: same engine as production, so the real race test runs.
+  - id: postgres
+    name: gcr.io/cloud-builders/docker
+    script: |
+      docker run -d --network=cloudbuild --name=postgres \
+        -e POSTGRES_USER=careslot -e POSTGRES_PASSWORD=careslot -e POSTGRES_DB=careslot postgres:16
+
+  - id: test
+    name: python:3.12-slim
+    env:
+      - DATABASE_URL=postgres://careslot:careslot@postgres:5432/careslot
+      - DJANGO_SECRET_KEY=ci-only-not-secret
+    script: |
+      set -e
+      pip install --quiet --root-user-action=ignore -r requirements-dev.txt
+      for attempt in $(seq 1 30); do
+        python -c "import os, psycopg; psycopg.connect(os.environ['DATABASE_URL']).close()" 2>/dev/null && break
+        echo "waiting for postgres ($attempt)"; sleep 2
+      done
+      ruff check .
+      ruff format --check .
+      python manage.py makemigrations --check --dry-run
+      python manage.py test scheduling -v 2
+
+  # Runs alongside the tests, so a broken Dockerfile fails the PR rather than the deploy.
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    waitFor: ["-"]
+    script: |
+      docker build -t "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:${COMMIT_SHA:-manual}" .
+
+  # ---- Everything below only runs on the deploy trigger, and only after test and build pass. ----
+
+  - id: push
+    name: gcr.io/cloud-builders/docker
+    waitFor: [test, build]
+    script: |
+      [ "$_DEPLOY" = "true" ] || { echo "not a deploy build, skipping"; exit 0; }
+      docker push "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$COMMIT_SHA"
+
+  # Migrate once, from the new image, before the new revision takes traffic.
+  - id: migrate
+    name: gcr.io/cloud-builders/docker
+    secretEnv: [PROD_DATABASE_URL]
+    script: |
+      [ "$_DEPLOY" = "true" ] || { echo "not a deploy build, skipping"; exit 0; }
+      docker run --rm -e DATABASE_URL="$PROD_DATABASE_URL" \
+        "$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$COMMIT_SHA" python manage.py migrate --noinput
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    script: |
+      [ "$_DEPLOY" = "true" ] || { echo "not a deploy build, skipping"; exit 0; }
+      gcloud run deploy "$_SERVICE" \
+        --image="$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO/$_SERVICE:$COMMIT_SHA" \
+        --region="$_REGION" \
+        --allow-unauthenticated \
+        --set-secrets=DATABASE_URL=careslot-database-url:latest,DJANGO_SECRET_KEY=careslot-secret-key:latest \
+        --set-env-vars=GIT_COMMIT="$COMMIT_SHA",DJANGO_DEBUG=0 \
+        --min-instances=0 --max-instances=2 --memory=512Mi
+
+  # A finished deploy command doesn't prove the app boots and reaches its database; /health does.
+  - id: verify
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    script: |
+      [ "$_DEPLOY" = "true" ] || { echo "not a deploy build, skipping"; exit 0; }
+      url=$(gcloud run services describe "$_SERVICE" --region="$_REGION" --format='value(status.url)')
+      for attempt in $(seq 1 20); do
+        live=$(curl --silent --max-time 30 "$url/health" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("commit",""))' 2>/dev/null || true)
+        if [ "$live" = "$COMMIT_SHA" ]; then echo "$COMMIT_SHA is live at $url"; exit 0; fi
+        echo "attempt $attempt: live commit is '${live:-unreachable}', waiting"; sleep 10
+      done
+      echo "$COMMIT_SHA did not come up healthy at $url"; exit 1

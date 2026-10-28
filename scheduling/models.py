@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Case, F, Q, When
+from django.db.models import F, Q
 
 
 class Doctor(models.Model):
@@ -78,15 +78,6 @@ class Appointment(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # start_at while booked, NULL once cancelled. Maintained by the database itself. Unique indexes
-    # ignore NULLs, so the constraint below means "one *active* booking per doctor per slot" while
-    # cancelled rows stay for history. A generated column is used because MySQL has no partial indexes
-    # (Django silently skips a conditional UniqueConstraint there).
-    active_start_at = models.GeneratedField(
-        expression=Case(When(status="booked", then=F("start_at")), default=None),
-        output_field=models.DateTimeField(null=True),
-        db_persist=True,
-    )
 
     objects = AppointmentQuerySet.as_manager()
 
@@ -94,7 +85,13 @@ class Appointment(models.Model):
         ordering = ["start_at"]
         constraints = [
             # The database-level guarantee against double booking, including concurrent requests.
-            models.UniqueConstraint(fields=["doctor", "active_start_at"], name="unique_active_booking_per_doctor_slot"),
+            # Partial: only *booked* rows count, so a cancelled slot can be booked again while the
+            # cancelled row stays for history.
+            models.UniqueConstraint(
+                fields=["doctor", "start_at"],
+                condition=Q(status="booked"),
+                name="unique_active_booking_per_doctor_slot",
+            ),
             models.CheckConstraint(condition=Q(end_at__gt=F("start_at")), name="appointment_ends_after_it_starts"),
         ]
         indexes = [
